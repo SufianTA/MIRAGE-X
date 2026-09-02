@@ -18,9 +18,7 @@ I then compared two evaluation strategies.
 
 ### 1. General plausibility ranking
 
-Qwen2.5-VL scored task progress, object continuity, physical plausibility, manipulation feasibility, and temporal consistency. Scores varied between 5/10 and 6/10, with seed 33 ranked first.
-
-That result was useful, but the critic's own rationales exposed a weakness: a rollout could receive a relatively high score while also being tagged with problems such as `no movement` or `unrealistic grasp`.
+Qwen2.5-VL scored task progress, object continuity, physical plausibility, manipulation feasibility, and temporal consistency. Scores varied between 5/10 and 6/10, with seed 33 ranked first. The critic separated candidates, but its own rationales exposed a weakness: a relatively high score could coexist with warnings such as `no movement` or `unrealistic grasp`.
 
 ### 2. Task-grounded verification
 
@@ -30,7 +28,7 @@ The verifier sampled seven ordered frames from each rollout and ran three determ
 
 The correct controller decision in this pilot is therefore:
 
-> **ABSTAIN - no generated future cleared task-grounded verification.**
+> **ABSTAIN — no generated future cleared task-grounded verification.**
 
 This is the main point of MIRAGE-X: a controller should not be forced to execute the least-bad rollout simply because a ranking function can order the candidates.
 
@@ -42,16 +40,15 @@ If no candidate clears verification, the next step should be to re-observe, chan
 
 ## Repository
 
-- `paper/MIRAGE-X_two_page_note.pdf` - two-page research note
-- `artifacts/futures/` - all eight generated futures
-- `artifacts/figures/` - contact sheets and initial frame
-- `results/generation_manifest.json` - generation settings, runtime, memory
-- `results/plausibility_critic.json` - first-pass ranking output
-- `results/task_grounded_verifier.json` - strict three-pass verification
-- `results/summary.json` - compact experiment summary
-- `src/generate_futures.py` - controlled multi-future generation
-- `src/plausibility_critic_qwen.py` - general critic
-- `src/task_grounded_verifier_qwen.py` - failure-aware verifier
+- `paper/MIRAGE-X_two_page_note.md` — preliminary research note
+- `results/generation_manifest.json` — generation settings, runtime, and memory
+- `results/summary.json` — compact experiment summary
+- `src/generate_futures.py` — controlled multi-future generation
+- `src/plausibility_critic_qwen.py` — general multimodal critic
+- `src/task_grounded_verifier_qwen.py` — failure-aware verifier
+- `REPRODUCIBILITY.md` — environment and run details
+
+The generated videos and rendered figures are retained as experiment artifacts; upstream model weights are not redistributed.
 
 ## Scope
 
