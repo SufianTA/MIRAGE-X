@@ -1,0 +1,13 @@
+{
+  "experiment": "MIRAGE-X preliminary select-or-abstain study",
+  "task": "Move the cup near bottle Franka Emika Panda",
+  "n_futures": 8,
+  "seeds": [11,22,33,44,55,66,77,88],
+  "mean_generation_seconds": 138.9585818350315,
+  "peak_allocated_gb": 35.70570993423462,
+  "plausibility_scores": [5.0,5.0,6.0,5.0,6.0,5.0,5.0,6.0],
+  "plausibility_best": "future_02_seed_33.mp4",
+  "strict_passes_per_future": 3,
+  "strict_passed_futures": 0,
+  "decision": "ABSTAIN"
+}
