@@ -1,0 +1,9 @@
+torch
+transformers>=4.49,<5
+qwen-vl-utils
+accelerate
+opencv-python
+pillow
+numpy
+diffusers==0.32.1
+huggingface_hub
