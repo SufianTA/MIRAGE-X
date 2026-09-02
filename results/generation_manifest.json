@@ -1,0 +1,22 @@
+{
+  "experiment": "MIRAGE-X Experiment 1",
+  "description": "Controlled multi-future world-model imagination",
+  "base_model": "THUDM/CogVideoX-5b-I2V",
+  "world_model_adapter": "anyeZHY/tesseract/tesseract_v01e_rgb_lora",
+  "prompt": "Move the cup near bottle Franka Emika Panda",
+  "image": "asset/images/majo.jpg",
+  "resolution": [640,480],
+  "steps": 50,
+  "guidance_scale": 7.5,
+  "load_seconds": 59.194162130355835,
+  "runs": [
+    {"future_index":0,"seed":11,"file":"future_00_seed_11.mp4","runtime_seconds":137.8538420200348,"peak_allocated_gb":35.70570993423462,"peak_reserved_gb":43.81640625,"num_frames":49},
+    {"future_index":1,"seed":22,"file":"future_01_seed_22.mp4","runtime_seconds":138.01713466644287,"peak_allocated_gb":35.70570993423462,"peak_reserved_gb":43.81640625,"num_frames":49},
+    {"future_index":2,"seed":33,"file":"future_02_seed_33.mp4","runtime_seconds":138.17294430732727,"peak_allocated_gb":35.70570993423462,"peak_reserved_gb":43.81640625,"num_frames":49},
+    {"future_index":3,"seed":44,"file":"future_03_seed_44.mp4","runtime_seconds":138.1879186630249,"peak_allocated_gb":35.70570993423462,"peak_reserved_gb":43.81640625,"num_frames":49},
+    {"future_index":4,"seed":55,"file":"future_04_seed_55.mp4","runtime_seconds":140.7400505542755,"peak_allocated_gb":35.70570993423462,"peak_reserved_gb":43.81640625,"num_frames":49},
+    {"future_index":5,"seed":66,"file":"future_05_seed_66.mp4","runtime_seconds":139.52569317817688,"peak_allocated_gb":35.70570993423462,"peak_reserved_gb":43.81640625,"num_frames":49},
+    {"future_index":6,"seed":77,"file":"future_06_seed_77.mp4","runtime_seconds":139.46880865097046,"peak_allocated_gb":35.70570993423462,"peak_reserved_gb":43.81640625,"num_frames":49},
+    {"future_index":7,"seed":88,"file":"future_07_seed_88.mp4","runtime_seconds":139.7022626399994,"peak_allocated_gb":35.70570993423462,"peak_reserved_gb":43.81640625,"num_frames":49}
+  ]
+}
