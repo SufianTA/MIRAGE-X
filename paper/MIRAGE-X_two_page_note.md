@@ -1,57 +1,56 @@
-# MIRAGE-X: Knowing When Not to Act
-### Task-grounded verification of imagined futures for embodied agents
+# MIRAGE-X: Select-or-Abstain Verification of Imagined Robot Futures
+### Task-grounded verification for embodied world-model agents
 **Sufian Aldogom | Preliminary research note | September 2026**
 
 ## Motivation
-Video world models can produce futures that look coherent without necessarily providing a trustworthy basis for action. Recent work such as GEM-4D addresses this gap by improving geometric consistency and extracting executable robot trajectories. This note studies a complementary decision problem: what should an agent do when it has several imagined futures, but none is clearly task-grounded enough to execute?
+Video world models can generate visually coherent robot futures without guaranteeing that those futures are task-correct or executable. GEM-4D addresses the generation side of this problem through geometry-enhanced world modeling for robot manipulation. MIRAGE-X studies the downstream decision problem: **when several futures have been imagined, should the controller execute one of them at all?**
 
 ## Hypothesis
-An embodied agent should treat world-model rollouts as hypotheses to verify rather than plans to execute. Ranking candidates is useful, but ranking alone is insufficient: the controller needs an explicit select-or-abstain decision.
+World-model rollouts should be treated as candidate hypotheses, not executable plans by default. A controller should rank candidates when useful, verify them against the requested task, and explicitly **select or abstain**.
 
 `OBSERVE -> IMAGINE -> RANK -> VERIFY -> DECIDE`
 
 ## Experimental setup
-I used the open-source TesserAct RGB world model as a temporary backend because GEM-4D inference code was not public at the time of the experiment. The observation and instruction were fixed: “Move the cup near bottle Franka Emika Panda.” Eight futures were generated using seeds 11, 22, 33, 44, 55, 66, 77, and 88. Each rollout contained 49 frames at 640 x 480, using 50 inference steps and guidance scale 7.5.
+TesserAct was used as the open world-model backend for this pilot. The observation and instruction were held fixed: *Move the cup near bottle Franka Emika Panda.* Eight stochastic futures were generated using seeds 11, 22, 33, 44, 55, 66, 77, and 88. Each rollout contained 49 frames at 640 x 480, using 50 inference steps and guidance scale 7.5.
 
 - Futures: 8
 - Mean generation: 139.0 s / future
-- Peak VRAM: 35.7 GB
-- Strict judgments: 24 (8 x 3)
+- Peak allocated VRAM: 35.7 GB
+- Strict verifier judgments: 24 (8 futures x 3 passes)
 
-## Two evaluators, two different conclusions
-**General plausibility critic.** Qwen2.5-VL scored task progress, object continuity, physical plausibility, manipulation feasibility, and temporal consistency. It produced non-identical scores (5/10 or 6/10) and ranked seed 33 first. The critic therefore separated candidates, but its own rationales revealed a weakness: a relatively high score could coexist with warnings such as “no movement” or “unrealistic grasp.”
+## Evaluation
+**General plausibility critic.** Qwen2.5-VL scored task progress, object continuity, physical plausibility, manipulation feasibility, and temporal consistency. Candidate scores ranged from 5/10 to 6/10, with seed 33 ranked first. The rationales showed that a relatively high aggregate score could still coexist with important failure indicators.
 
-**Task-grounded verifier.** I tightened the rubric so visible, causal completion of the requested manipulation dominated the score. A major failure was triggered by no meaningful progress, wrong-object interaction, impossible grasp, severe collision/interpenetration, or clearly incomplete manipulation. Seven ordered frames were sampled from each rollout and judged three deterministic times. All 24 judgments rejected the candidate being evaluated.
+**Task-grounded verifier.** A stricter rubric required visible, causal completion of the requested manipulation. Major failures included no meaningful task progress, wrong-object interaction, impossible grasp, severe collision/interpenetration, or clearly incomplete manipulation. Seven ordered frames were sampled from each rollout and judged three deterministic times. **All 24 judgments rejected the evaluated candidate.**
 
-**The important result is not that one candidate won. It is that the correct controller decision was ABSTAIN.**
+**Result: no imagined future cleared the task-grounded gate. The controller decision is ABSTAIN.**
 
 ## Interpretation
-This pilot exposes a distinction between visual plausibility and task-grounded actionability. A ranking function can order futures even when none should be executed. For an embodied system, “best among the samples” is not the same as “safe and relevant enough to act on.”
+The pilot separates **visual plausibility** from **task-grounded actionability**. A ranking function can order candidate futures even when none is acceptable for execution. In that case, selecting the highest-ranked rollout would be a controller error; abstention is the safer and more informative outcome.
 
-## MIRAGE-X control rule
-The proposed controller separates candidate generation from permission to act. It first samples futures, optionally ranks them, then applies a task-grounded gate. If no candidate clears the gate, the system should abstain and spend its next unit of computation on information acquisition or replanning rather than execution.
+## Controller rule
+MIRAGE-X separates candidate generation from permission to act. The controller may allocate additional imagination when candidates disagree, but execution is allowed only after task-grounded verification.
 
 | Condition | Controller response |
 |---|---|
-| At least one future passes verification | Select the highest-quality passing future; execute only a short horizon. |
-| Futures disagree / verifier uncertain | Allocate more imagination or acquire another observation. |
-| No future passes verification | ABSTAIN; change action proposal, re-observe, or invoke a stronger world model. |
-| Reality diverges after partial execution | Stop and re-plan from the new observation. |
+| One or more futures pass verification | Select the highest-quality passing future; execute a short horizon. |
+| Candidates disagree or verification is uncertain | Generate additional futures or acquire another observation. |
+| No future passes verification | Abstain; revise the action proposal, re-observe, or invoke a stronger world model. |
+| Observed state diverges from predicted state | Stop execution, update state, regenerate candidates, and verify again. |
 
-## Why GEM-4D is the natural next test
-GEM-4D is designed to make video-world-model rollouts geometrically consistent enough to support robot manipulation, and reports substantially higher manipulation success than TesserAct on its evaluated tasks. MIRAGE-X asks a different but complementary question: given a stronger rollout generator, can an external verifier calibrate when the resulting future is trustworthy enough to execute? A useful next study would replace the TesserAct backend with GEM-4D while keeping the select-or-abstain layer fixed.
+## Why GEM-4D is the natural next experiment
+GEM-4D is designed to produce geometry-enhanced video-world-model rollouts and convert them into robot trajectories. MIRAGE-X asks a complementary downstream question: **given a stronger rollout generator, when should the controller trust a predicted future enough to execute it?** A clean follow-up is to substitute GEM-4D for the TesserAct backend while keeping the select-or-abstain layer fixed.
 
-A controlled follow-up would measure: (1) verification pass rate, (2) calibration of verifier confidence against actual task success, (3) the relationship between geometric consistency and verifier acceptance, (4) compute spent before action, and (5) recovery after prediction error during partial execution.
+## Proposed evaluation
+Evaluate multiple manipulation tasks and controlled disturbances under three controller variants: (1) single-rollout execution, (2) best-of-K ranking, and (3) select-or-abstain verification. Measure task success, false-accept rate, abstention rate, world-model calls, latency, and recovery after prediction error. A closed-loop version would execute only a short horizon, compare the observed next state against the predicted state, and trigger re-imagination when divergence exceeds a threshold.
 
-## What this pilot establishes — and what it does not
-**Established:** a reproducible pipeline generated eight stochastic robot futures from one fixed scene; a generic multimodal critic ranked them; a stricter task-grounded verifier rejected all eight across three deterministic judgments per future; and the resulting control decision was abstention.
-
-**Not established:** a general scaling law, improved robot success, superiority over a baseline controller, or any result about GEM-4D itself. There was no physical execution or inverse-dynamics evaluation. Qwen2.5-VL is also an imperfect verifier and should ultimately be calibrated against simulator or real-robot outcomes.
+## Current scope
+This is a single-scene proof of concept. It does not include physical robot execution, inverse dynamics, or GEM-4D integration, and it does not establish a general test-time scaling law. Qwen2.5-VL is an imperfect verifier and should ultimately be calibrated against simulator or real-robot outcomes. The contribution of this pilot is the **select-or-abstain verification formulation** and a reproducible failure case that motivates a larger study.
 
 ## Research direction
-The broader question is whether embodied agents can learn when imagination is actionable. A useful world model should not only support prediction; its downstream controller should know when to trust a predicted future, when to seek more evidence, and when not to act.
+The broader question is whether embodied agents can learn when imagination is actionable. A useful world model should support prediction; a useful controller should know when to trust that prediction, when to seek more evidence, and when not to act.
 
 ## References
-1. H. Zhen et al. “TesserAct: Learning 4D Embodied World Models.” ICCV 2025.
-2. K. Zhou et al. “GEM-4D: Geometry-Enhanced Video World Models for Robot Manipulation.” ECCV 2026; arXiv:2605.22882.
-3. R. Gu, K. Zhou, Y. Luo, M. Wang. “GeoWorld-VLM: Geometry from World Models for Vision-Language Models.” arXiv:2605.16713, 2026.
+1. K. Zhou et al. *GEM-4D: Geometry-Enhanced Video World Models for Robot Manipulation.* ECCV 2026; arXiv:2605.22882.
+2. R. Gu, K. Zhou, Y. Luo, M. Wang. *GeoWorld-VLM: Geometry from World Models for Vision-Language Models.* arXiv:2605.16713, 2026.
+3. H. Zhen et al. *TesserAct: Learning 4D Embodied World Models.* ICCV 2025.
